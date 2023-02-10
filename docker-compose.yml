@@ -1,0 +1,168 @@
+version: '3'
+
+networks:
+  api-network:
+    name: api-network
+    driver: bridge
+
+volumes:
+  postgres-volume:
+  mongo-volume:
+  rabbitmq-volume:
+  config-konga:
+
+
+services:
+
+######################RabbitMQ - Beginning###########################
+
+  rabbitmq3:
+        container_name: "rabbitmq"
+        image: rabbitmq:3.11.7-alpine
+        environment:
+            - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER}
+            - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASSWORD}
+        networks:
+            - api-network
+        restart: always
+        volumes:
+          - rabbitmq-volume:/var/lib/rabbitmq
+        ports:
+            # AMQP protocol port
+            - '5672:5672'
+            # HTTP management UI
+            - '15672:15672'
+        expose:
+          - 5672
+
+######################RabbitMQ - End###########################
+
+######################FastAPI - Beginning###########################
+
+  rabbitmq-consumer-app-fastapi:
+    container_name: rabbitmq-consumer-app-fastapi
+    build: ./to_do_app/rabbitmq-consumer-app-fastapi
+    environment:
+      - RABBITMQ_USER=${RABBITMQ_USER}
+      - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    restart: always
+    ports:
+      - 8007:80
+    expose:
+      - 80
+    networks:
+      - api-network
+    volumes:
+      - ./to_do_app/rabbitmq-consumer-app-fastapi:/usr/src/rabbitmq-consumer-app-fastapi/
+    depends_on:
+      - postgres
+      - rabbitmq3
+
+  aggregation-app-fastapi:
+    container_name: aggregation-app-fastapi
+    build: ./to_do_app/aggregation-app-fastapi
+    environment:
+      - RABBITMQ_USER=${RABBITMQ_USER}
+      - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    restart: always
+    ports:
+      - 8006:80
+    expose:
+      - 80
+    networks:
+      - api-network
+    volumes:
+      - ./to_do_app/aggregation-app-fastapi:/usr/src/aggregation-app-fastapi/
+    depends_on:
+      - postgres
+      - rabbitmq3
+
+  task-app-fastapi:
+    container_name: task-app-fastapi
+    build: ./to_do_app/task-app-fastapi
+    environment:
+      - RABBITMQ_USER=${RABBITMQ_USER}
+      - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
+      - MONGO_USERNAME=${MONGO_USERNAME}
+      - MONGO_PASSWORD=${MONGO_PASSWORD}
+    restart: always
+    ports:
+      - 8003:80
+    expose:
+      - 80
+    networks:
+      - api-network
+    volumes:
+      - ./to_do_app/task-app-fastapi:/usr/src/task-app-fastapi/
+    depends_on:
+      - mongodb
+      - rabbitmq-consumer-app-fastapi
+
+  user-app-fastapi:
+    container_name: user-app-fastapi
+    build: ./to_do_app/user-app-fastapi
+    environment:
+      - RABBITMQ_USER=${RABBITMQ_USER}
+      - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
+      - MONGO_USERNAME=${MONGO_USERNAME}
+      - MONGO_PASSWORD=${MONGO_PASSWORD}
+    restart: always
+    ports:
+      - 8005:80
+    expose:
+      - 80
+    networks:
+      - api-network
+    volumes:
+      - ./to_do_app/user-fastapi:/usr/src/user-app-fastapi/
+    depends_on:
+      - mongodb
+      - rabbitmq-consumer-app-fastapi
+
+######################FastAPI - End###########################
+
+######################MongoDB - Beginning###########################
+
+  mongo:
+    container_name: mongo
+    image: mongo:6.0.4-jammy
+    restart: always
+    ports:
+      - "27017:27017"
+    expose:
+      - 27017
+    networks:
+      - api-network
+    volumes:
+      - mongo-volume:/data/db
+      - mongo-volume:/data/configdb
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
+
+######################MongoDB - End###########################
+
+######################PostgreSQL - Beginning###########################
+
+  postgres:
+    container_name: postgres
+    image: postgres:15.1-alpine
+    ports:
+      - "5433:5432"
+    expose:
+      - 5432
+    networks:
+      - api-network
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    restart: always
+    volumes:
+      - postgres-volume:/var/lib/postgresql/data
+      - "/etc/localtime:/etc/localtime:ro"
+
+######################PostgreSQL - End###########################
