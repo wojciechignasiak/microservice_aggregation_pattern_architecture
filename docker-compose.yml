@@ -99,7 +99,7 @@ services:
     volumes:
       - ./to_do_app/task-app-fastapi:/usr/src/task-app-fastapi/
     depends_on:
-      - mongodb
+      - mongo
       - rabbitmq-consumer-app-fastapi
 
   user-app-fastapi:
@@ -118,9 +118,9 @@ services:
     networks:
       - api-network
     volumes:
-      - ./to_do_app/user-fastapi:/usr/src/user-app-fastapi/
+      - ./to_do_app/user-app-fastapi:/usr/src/user-app-fastapi/
     depends_on:
-      - mongodb
+      - mongo
       - rabbitmq-consumer-app-fastapi
 
 ######################FastAPI - End###########################
