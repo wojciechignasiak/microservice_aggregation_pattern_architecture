@@ -4,7 +4,7 @@ from app.mongo_connector.connector import init_db
 from app.endpoints import (
     create_user_endpoint,
     delete_user_endpoint,
-    get_all_users_endpoint
+    get_all_users_endpoint,
 )
 
 
@@ -13,6 +13,7 @@ def create_application() -> FastAPI:
 
     application.include_router(create_user_endpoint.router, prefix="/user", tags=["user"])
     application.include_router(delete_user_endpoint.router, prefix="/user", tags=["user"])
+    application.include_router(get_all_users_endpoint.router, prefix="/user", tags=["user"])
     application.include_router(get_all_users_endpoint.router, prefix="/user", tags=["user"])
     
     return application
