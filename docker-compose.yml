@@ -9,7 +9,6 @@ volumes:
   postgres-volume:
   mongo-volume:
   rabbitmq-volume:
-  config-konga:
 
 
 services:
