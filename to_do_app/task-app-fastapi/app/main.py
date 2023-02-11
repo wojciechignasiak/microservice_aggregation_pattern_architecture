@@ -5,7 +5,8 @@ from app.endpoints import (
     create_task_endpoint,
     get_task_endpoint,
     get_all_tasks_endpoint,
-    delete_task_endpoint
+    delete_task_endpoint,
+    get_selected_tasks_endpoint
 )
 
 
@@ -13,6 +14,7 @@ def create_application() -> FastAPI:
     application = FastAPI(openapi_url="/task/openapi.json", docs_url="/task/docs")
     application.include_router(create_task_endpoint.router, prefix="/task", tags=["task"])
     application.include_router(get_task_endpoint.router, prefix="/task", tags=["task"])
+    application.include_router(get_selected_tasks_endpoint.router, prefix="/task", tags=["task"])
     application.include_router(get_all_tasks_endpoint.router, prefix="/task", tags=["task"])
     application.include_router(delete_task_endpoint.router, prefix="/task", tags=["task"])
 
