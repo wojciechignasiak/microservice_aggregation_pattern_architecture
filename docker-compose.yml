@@ -17,23 +17,21 @@ services:
 ######################RabbitMQ - Beginning###########################
 
   rabbitmq3:
-        container_name: "rabbitmq"
-        image: rabbitmq:3.11.7-alpine
-        environment:
-            - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER}
-            - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASSWORD}
-        networks:
-            - api-network
-        restart: always
-        volumes:
-          - rabbitmq-volume:/var/lib/rabbitmq
-        ports:
-            # AMQP protocol port
-            - '5672:5672'
-            # HTTP management UI
-            - '15672:15672'
-        expose:
-          - 5672
+    container_name: "rabbitmq"
+    image: rabbitmq:3.11.7-alpine
+    environment:
+        - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER}
+        - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASSWORD}
+    networks:
+        - api-network
+    restart: always
+    volumes:
+      - rabbitmq-volume:/var/lib/rabbitmq
+    ports:
+        # AMQP protocol port
+        - '5672:5672'
+    expose:
+      - 5672
 
 ######################RabbitMQ - End###########################
 
